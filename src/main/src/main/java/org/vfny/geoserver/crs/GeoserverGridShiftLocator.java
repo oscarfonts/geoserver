@@ -5,15 +5,10 @@
 package org.vfny.geoserver.crs;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
-
-import javax.imageio.spi.ServiceRegistry;
 
 import org.geotools.data.DataUtilities;
 import org.geotools.factory.AbstractFactory;
-import org.geotools.factory.Factory;
 import org.geotools.metadata.iso.citation.Citations;
 import org.geotools.referencing.factory.gridshift.ClasspathGridShiftLocator;
 import org.geotools.referencing.factory.gridshift.GridShiftLocator;
