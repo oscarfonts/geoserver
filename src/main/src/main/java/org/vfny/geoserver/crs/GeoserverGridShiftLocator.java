@@ -10,7 +10,6 @@ import java.net.URL;
 import org.geotools.data.DataUtilities;
 import org.geotools.factory.AbstractFactory;
 import org.geotools.metadata.iso.citation.Citations;
-import org.geotools.referencing.factory.gridshift.ClasspathGridShiftLocator;
 import org.geotools.referencing.factory.gridshift.GridShiftLocator;
 import org.opengis.metadata.citation.Citation;
 import org.vfny.geoserver.global.GeoserverDataDirectory;
@@ -23,20 +22,17 @@ import org.vfny.geoserver.global.GeoserverDataDirectory;
  */
 public class GeoserverGridShiftLocator extends AbstractFactory implements GridShiftLocator {
 
-    /** 
-     * Higher PRIORITY than default locator
-     */
-    public static final int PRIORITY = ClasspathGridShiftLocator.PRIORITY + 10;
-    
     public GeoserverGridShiftLocator() {
-        super(PRIORITY);
+        // higher priority than the default locator
+        super(NORMAL_PRIORITY + 10);
     }
 
     @Override
     public Citation getVendor() {
-        return Citations.GEOTOOLS; // Should be GEOSERVER? How?
+        // one day we could roll a GeoServer citation, but for just one use it's too much work
+        return Citations.GEOTOOLS;
     }
-    
+
     /**
      * Locate the specified grid file.
      * 
@@ -48,15 +44,15 @@ public class GeoserverGridShiftLocator extends AbstractFactory implements GridSh
     @Override
     public URL locateGrid(String grid) {
         if (grid == null)
-           return null;
-        
+            return null;
+
         File gridfile = new File(GeoserverDataDirectory.getGeoserverDataDirectory(),
-                "user_projections/"+grid);
+                "user_projections/" + grid);
 
         if (gridfile.exists()) {
             return DataUtilities.fileToURL(gridfile);
         } else {
-            return null;            
+            return null;
         }
     }
 }
