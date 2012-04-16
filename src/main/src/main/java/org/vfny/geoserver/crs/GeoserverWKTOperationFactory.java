@@ -24,7 +24,7 @@ public class GeoserverWKTOperationFactory extends CoordinateOperationFactoryUsin
     /**
      * Priority for this factory.
      */
-    public static final int PRIORITY = MAXIMUM_PRIORITY - 2;
+    public static final int PRIORITY = CoordinateOperationFactoryUsingWKT.PRIORITY + 10;
     
     public GeoserverWKTOperationFactory() {
         super(null, PRIORITY);
