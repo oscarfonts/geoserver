@@ -102,7 +102,7 @@ NADCON
 ``````
 
 .. csv-table::
-   :header: Source CRS, Target CRS, Version, Grid File Name 1, Grid File Name 2
+   :header: Source CRS, Target CRS, Version, Latitude shift file, Longitude shift file
 
    4135,4269,NGS-Usa HI,hawaii.las,hawaii.los
    4136,4269,NGS-Usa AK StL,stlrnc.las,stlrnc.los

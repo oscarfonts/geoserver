@@ -21,17 +21,12 @@ import org.vfny.geoserver.global.GeoserverDataDirectory;
 public class GeoserverWKTOperationFactory extends CoordinateOperationFactoryUsingWKT
         implements CoordinateOperationAuthorityFactory {
 
-    /**
-     * Priority for this factory.
-     */
-    public static final int PRIORITY = MAXIMUM_PRIORITY - 2;
-    
     public GeoserverWKTOperationFactory() {
-        super(null, PRIORITY);
+        super(null, MAXIMUM_PRIORITY);
     }
     
     public GeoserverWKTOperationFactory(Hints userHints) {
-        super(userHints, PRIORITY);
+        super(userHints, MAXIMUM_PRIORITY);
     }
 
     /**
@@ -46,7 +41,10 @@ public class GeoserverWKTOperationFactory extends CoordinateOperationFactoryUsin
         if (file.exists()) {
             return DataUtilities.fileToURL(file);
         } else {
-            return null;
+            LOGGER.info(file.getAbsolutePath() + " was not found, using the default set of " +
+            		"coordinate operation overrides (normally empty)");
+            // use the built-in file
+            return GeoserverOverridingWKTFactory.class.getResource(FILENAME); 
         }
     }
 }
