@@ -1,31 +1,51 @@
-.. _crs_gridshift:
+.. _crs_coordtransforms:
 
 .. |EPSG_V| replace:: EPSG version 7.9.0
 
-Using Grid Shift Transformations
-================================
+Coordinate Operations
+=====================
 
-GeoServer supports high precision coordinate transformations via NTv2 and NADCON grid shift files.
+Coordinate operations are used to convert coordinates from a `source CRS` to a `target CRS`.
 
-These files are not shipped out with GeoServer. They need to be downloaded, usually from yor National Mapping Agency website.
+If source and target CRSs use a different datum, a datum transform has to be applied. Datum transforms are not exact, they are determined empirically. For the same pair of CRS, there can be many datum transforms and versions, each one with its own domain of validity and an associated error. Given a CRS pair, GeoServer will automatically pick the most accurate datum transform in the EPSG database, unless a custom operation is declared.
 
-#. Locate the *Grid File Name(s)* from the tables below.
+* Coordinate operations can be queried and tested using the `Reprojection Console`_.
+* To enable higher accuracy Grid Shift transforms, see `Add Grid Shift Transform files`_.
+* See `Define a custom Coordinate Operation`_ to declare new operations. Custom operations will take precedence over the EPSG ones.
+
+Reprojection Console
+--------------------
+
+The reprojection console (in `Demos` => `Reprojection console`) lets quickly test coordinate operations. Use it to convert a single coordinate, a WKT geometry, and to see which operation GeoServer is using. It is also useful to `Define a custom Coordinate Operation`_ by example, based on existing ones.
+
+.. figure:: images/reprojection_console.png
+   :align: center
+   
+   The reprojection console, showing transformation details and a transformed coordinate pair.
+
+Add Grid Shift Transform files
+------------------------------
+
+GeoServer supports NTv2 and NADCON grid shift transforms. Grid files are not shipped out with GeoServer. They need to be downloaded, usually from yor National Mapping Agency website.
+
+.. warning::
+
+   Grid Shift files are only valid in a specific geographic domain for which they where made; trying to transform coordinates outside this domain will result in no trasformation at all. Make sure to use Grid Shift files valid in the area you want to transform.
+
+#. Locate the *Grid File Name(s)* int the tables below, which are extracted from |EPSG_V|.
 #. Get the Grid File(s) from your National Mapping Agency (NTv2) or the `US National Geodetic Survey <http://www.ngs.noaa.gov/TOOLS/Nadcon/Nadcon.shtml>`_ (NADCON).
 #. Copy the Grid File(s) in the :file:`user_projections` directory inside your data directory.
+#. Use the `Reprojection Console`_ to confirm the new transform is used.
 
-.. Warning::
+To declare a Grid Shift transform not in |EPSG_V|, `Define a custom Coordinate Operation`_.
 
-   Grid Shift files are only valid in the geographic domain for which they where made; trying to transform coordinates outside this domain will result in no trasformation at all. Make sure which area is covered by your Grid Shift files.
+List of available Grid Shift transforms
+```````````````````````````````````````
 
-
-List of available Grid Shift transformations
---------------------------------------------
-
-The list of supported Grid Shift transformations is determined by the EPSG database. In |EPSG_V|, the available transformations are:
-
+The list of supported Grid Shift transforms is determined by the EPSG database. In |EPSG_V|, the available transforms are:
 
 NTv2
-````
+....
 
 .. csv-table::
    :header: Source CRS, Target CRS, Grid File Name, Source Info
@@ -97,9 +117,8 @@ NTv2
    WHERE val.coord_op_method_code = 9615 AND val.coord_op_code = op.coord_op_code AND op.deprecated = 0
    ORDER BY SOURCE_CRS, TARGET_CRS, GRID_FILE_NAME, SOURCE_INFO
 
-
 NADCON
-``````
+......
 
 .. csv-table::
    :header: Source CRS, Target CRS, Version, Latitude shift file, Longitude shift file
@@ -161,10 +180,63 @@ NADCON
    4269,4152,NGS-Usa WY,wyhpgn.las,wyhpgn.los
    4675,4152,NGS-Gum,guhpgn.las,guhpgn.los
 
-
 .. The SQL statement::
    SELECT DISTINCT source_crs_code SOURCE_CRS, target_crs_code TARGET_CRS, coord_tfm_version VERSION, REPLACE ( REPLACE (val.param_value_file_ref, '.las'), '.los') + '.las' GRID_FILE_NAME_1, REPLACE ( REPLACE (val.param_value_file_ref, '.las'), '.los') + '.los' GRID_FILE_NAME_2
    FROM epsg_coordoperationparamvalue val, epsg_coordoperation op  
    WHERE val.coord_op_method_code = 9613 AND val.coord_op_code = op.coord_op_code AND op.deprecated = 0 AND information_source != 'OGP'
    ORDER BY SOURCE_CRS, TARGET_CRS, GRID_FILE_NAME_1, GRID_FILE_NAME_2, VERSION
 
+Define a custom Coordinate Operation
+------------------------------------
+
+Custom Coordinate Operations are defined in :file:`epsg_operations.properties` file. This file has to be placed into the :file:`user_projections` directory, inside your data directory. (create it if it doesn't exist).
+
+Each line in :file:`epsg_operations.properties` defines a coordinate operation expressed as a WKT math transform, using the following syntax::
+
+  <source crs code>,<target crs code>=<WKT math transform>
+
+Some examples:
+
+Declare a custom NTv2 file::
+
+  4230,4258=PARAM_MT["NTv2", \
+    PARAMETER["Latitude and longitude difference file", "100800401.gsb"]]
+
+Geocentric transformation, concatenating ellipsoid to geocentric and geocentric to ellipsoid conversion::
+
+  4230,4258=CONCAT_MT[PARAM_MT["Ellipsoid_To_Geocentric", \
+    PARAMETER["dim", 2], \
+    PARAMETER["semi_major", 6378388.0], \
+    PARAMETER["semi_minor", 6356911.9461279465]], \
+  PARAM_MT["Position Vector transformation (geog2D domain)", \
+    PARAMETER["dx", -116.641], \
+    PARAMETER["dy", -56.931], \
+    PARAMETER["dz", -110.559], \
+    PARAMETER["ex", 0.8925078166311858], \
+    PARAMETER["ey", 0.9207660950870382], \
+    PARAMETER["ez", -0.9166407989620964], \
+    PARAMETER["ppm", -3.5200000000346066]], \
+  PARAM_MT["Geocentric_To_Ellipsoid", \
+    PARAMETER["dim", 2], \
+    PARAMETER["semi_major", 6378137.0], \
+    PARAMETER["semi_minor", 6356752.314140356]]]
+
+Affine 2D transform in projected coordinates::
+
+  23031,25831=PARAM_MT["Affine", \
+    PARAMETER["num_row", 3], \
+    PARAMETER["num_col", 3], \
+    PARAMETER["elt_0_0", 1.0000015503712145], \
+    PARAMETER["elt_0_1", 0.00000758753979846734], \
+    PARAMETER["elt_0_2", -129.549], \
+    PARAMETER["elt_1_0", -0.00000758753979846734], \
+    PARAMETER["elt_1_1", 1.0000015503712145], \
+    PARAMETER["elt_1_2", -208.185]]
+
+Describe each transformation in a single line, or add a backslash "\" to break definition in several lines for readability, as in the former examples.
+
+Use the `Reprojection Console`_ to learn from other examples and test your custom definitions.
+
+.. note::
+
+   Reference materials: `Well-Known Text format specification <http://www.geoapi.org/3.0/javadoc/org/opengis/referencing/doc-files/WKT.html>`_ for math transform syntax, and `EPSG Geodetic Parameter Registry <http://www.epsg-registry.org/>`_ for parameter names and value ranges.
