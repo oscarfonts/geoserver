@@ -38,7 +38,7 @@
     -->
 
     <target name="init">
-		<property environment="env"/>
+        <property environment="env"/>
 
         <!-- set geoserver root dir of cloned repository path -->
         <property name="tx.exec.dir" location="${basedir}/../"/>
@@ -48,28 +48,28 @@
         <!-- TODO check whether the .tx folder exists in geoserver root dir -->
 
         <condition property="tx.available" else="false">
-		    <or>
-				<and>
-					<and>
-						<os family="unix" />
-					</and>
-					<or>
-						<available file="tx" filepath="${env.PATH}"/>
-						<available file="tx.exe" filepath="${env.PATH}"/>
-					</or>
-					<available file="config" filepath="${tx.exec.dir}/.tx/"/>
-				</and>
-				<and>
-					<and>
-						<os family="windows" />
-					</and>
-					<or>
-						<available file="tx" filepath="${env.Path}"/>
-						<available file="tx.exe" filepath="${env.Path}"/>
-					</or>
-					<available file="config" filepath="${tx.exec.dir}/.tx/"/>
-				</and>
-			</or>
+            <or>
+                <and>
+                    <and>
+                        <os family="unix" />
+                    </and>
+                    <or>
+                        <available file="tx" filepath="${env.PATH}"/>
+                        <available file="tx.exe" filepath="${env.PATH}"/>
+                    </or>
+                    <available file="config" filepath="${tx.exec.dir}/.tx/"/>
+                </and>
+                <and>
+                    <and>
+                        <os family="windows" />
+                    </and>
+                    <or>
+                        <available file="tx" filepath="${env.Path}"/>
+                        <available file="tx.exe" filepath="${env.Path}"/>
+                    </or>
+                    <available file="config" filepath="${tx.exec.dir}/.tx/"/>
+                </and>
+            </or>
         </condition>
 
         <condition property="tx.languageIsntSet">
